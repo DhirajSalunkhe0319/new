@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #1e1f26;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    .calculator {
+      width: 320px;
+      background: #2e303b;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      padding: 24px;
+    }
+    .display {
+      width: 100%;
+      height: 70px;
+      border-radius: 18px;
+      background: #16171f;
+      color: #fff;
+      font-size: 2rem;
+      padding: 16px;
+      text-align: right;
+      box-sizing: border-box;
+      margin-bottom: 18px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 18px 0;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      color: #fff;
+      background: #3c3f51;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      background: #4b4f66;
+    }
+    button.operator {
+      background: #f39c12;
+      color: #111;
+    }
+    button.operator:hover {
+      background: #ffb84d;
+    }
+    button.clear {
+      background: #e74c3c;
+    }
+    button.clear:hover {
+      background: #ff6b6b;
+    }
+    button.equal {
+      grid-column: span 2;
+      background: #27ae60;
+    }
+    button.equal:hover {
+      background: #38d47a;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div id="display" class="display">0</div>
+    <div class="buttons">
+      <button class="clear" data-action="clear">AC</button>
+      <button data-action="delete">DEL</button>
+      <button data-action="operator">%</button>
+      <button class="operator" data-action="operator">/</button>
+      <button data-action="digit">7</button>
+      <button data-action="digit">8</button>
+      <button data-action="digit">9</button>
+      <button class="operator" data-action="operator">*</button>
+      <button data-action="digit">4</button>
+      <button data-action="digit">5</button>
+      <button data-action="digit">6</button>
+      <button class="operator" data-action="operator">-</button>
+      <button data-action="digit">1</button>
+      <button data-action="digit">2</button>
+      <button data-action="digit">3</button>
+      <button class="operator" data-action="operator">+</button>
+      <button data-action="digit">0</button>
+      <button data-action="digit">.</button>
+      <button class="equal" data-action="equal">=</button>
+    </div>
+  </div>
+  <script>
+    const display = document.getElementById('display');
+    let currentValue = '0';
+    let lastValue = '';
+    let pendingOperator = null;
+    let shouldReset = false;
+
+    function updateDisplay() {
+      display.textContent = currentValue;
+    }
+
+    function inputDigit(digit) {
+      if (shouldReset) {
+        currentValue = digit === '.' ? '0.' : digit;
+        shouldReset = false;
+        return;
+      }
+      if (digit === '.' && currentValue.includes('.')) return;
+      currentValue = currentValue === '0' && digit !== '.' ? digit : currentValue + digit;
+    }
+
+    function handleOperator(operator) {
+      if (operator === '%') {
+        currentValue = String(parseFloat(currentValue) / 100);
+        return;
+      }
+      if (pendingOperator !== null) {
+        calculate();
+      }
+      lastValue = currentValue;
+      pendingOperator = operator;
+      shouldReset = true;
+    }
+
+    function calculate() {
+      const a = parseFloat(lastValue);
+      const b = parseFloat(currentValue);
+      if (isNaN(a) || isNaN(b)) return;
+      let result = 0;
+      switch (pendingOperator) {
+        case '+': result = a + b; break;
+        case '-': result = a - b; break;
+        case '*': result = a * b; break;
+        case '/': result = b === 0 ? 'Error' : a / b; break;
+        default: return;
+      }
+      currentValue = String(result);
+      pendingOperator = null;
+      shouldReset = true;
+    }
+
+    function clearAll() {
+      currentValue = '0';
+      lastValue = '';
+      pendingOperator = null;
+      shouldReset = false;
+    }
+
+    function deleteLast() {
+      if (shouldReset) return;
+      currentValue = currentValue.length > 1 ? currentValue.slice(0, -1) : '0';
+    }
+
+    document.querySelector('.buttons').addEventListener('click', (event) => {
+      const button = event.target;
+      const action = button.dataset.action;
+      const buttonContent = button.textContent;
+
+      if (!action) return;
+
+      switch (action) {
+        case 'digit':
+          inputDigit(buttonContent);
+          break;
+        case 'operator':
+          handleOperator(buttonContent);
+          break;
+        case 'equal':
+          calculate();
+          break;
+        case 'clear':
+          clearAll();
+          break;
+        case 'delete':
+          deleteLast();
+          break;
+      }
+      updateDisplay();
+    });
+  </script>
+</body>
+</html>
